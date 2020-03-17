@@ -1,9 +1,7 @@
-import React from 'react';
-import './App.css';
-//import * as d3 from 'd3';
-import { Population } from './Population';
+import React, { useState } from 'react';
+import * as d3 from 'd3';
 
-/* const Person = ({ x, y, infected, dead, recovered }) => {
+const Person = ({ x, y, infected, dead, recovered }) => {
   //should use styled components here
   let strokeColor = 'rgb(146, 120, 226)';
   let fillColor = 'white';
@@ -26,6 +24,7 @@ import { Population } from './Population';
   );
 };
 // generates a poulation oriented around cx, cy
+//function usePopulation({ cx, cy, width, height }) {
 function createRow({ cx, cy, width }) {
   ///fit as many as possible into row
   const N = Math.floor(width / 15);
@@ -69,25 +68,56 @@ function createPopulation({ cx, cy, width, height }) {
   console.log('reducerow', reducerow);
   return reducerow;
 }
- */
-function App() {
-  /* const population = createPopulation({
-    cx: 400,
-    cy: 200,
-    width: 400,
-    height: 300
-  }); */
 
-  return (
-    <div className="App">
-      <h1>Visualizing the spread of viruses in a population</h1>
-
-      <Population cx={400} cy={200} width={400} height={300} />
-      {/* {population.map(p => (
-          <Person x={p.x} y={p.y} infected />
-        ))} */}
-    </div>
+function usePopulation({ cx, cy, width, height }) {
+  const [population, setPopulation] = useState(
+    createPopulation({
+      cx: width / 2,
+      cy: height / 2,
+      width: width - 15,
+      height: height - 15
+    })
   );
+
+  function startSimulation() {
+    // console.log('hello');
+    //avoid changing values directly
+    const nextPopulation = [...population];
+
+    //infect a random person
+    const person =
+      nextPopulation[Math.floor(Math.random() * nextPopulation.length)];
+    person.infected = true;
+
+    setPopulation(nextPopulation);
+  }
+
+  return { population, startSimulation };
 }
 
-export default App;
+export const Population = ({ cx, cy, width, height }) => {
+  const { population, startSimulation } = usePopulation({
+    cx,
+    cy,
+    width,
+    height
+  });
+
+  return (
+    <>
+      <svg
+        style={{
+          width: width,
+          height: height
+        }}
+      >
+        {population.map(p => (
+          <Person {...p} />
+        ))}
+      </svg>
+      <div>
+        <button onClick={startSimulation}>Infect a Person</button>
+      </div>
+    </>
+  );
+};
